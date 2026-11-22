@@ -1,0 +1,17 @@
+{
+  "mode.label": "Thinking mode",
+  "mode.option.auto": "Auto",
+  "mode.option.divergent": "Divergent",
+  "mode.option.focused": "Focused",
+  "mode.option.thorough": "Thorough",
+  "mode.option.off": "Off",
+  "mode.floor.auto": "Switches between divergent and focused",
+  "mode.floor.divergent": "Min. low",
+  "mode.floor.focused": "Min. high",
+  "mode.floor.thorough": "Max only",
+  "mode.floor.off": "Module off (restores prior effort)",
+  "mode.phase.divergent": "divergent",
+  "mode.phase.focused": "focused",
+  "mode.phase.thorough": "thorough",
+  "mode.failed": "Could not save thinking mode: {message}"
+}

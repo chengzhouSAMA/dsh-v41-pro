@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Always-loaded conduct · ethical-conduct",
+    "description": "Automatically includes the user's full conduct guidelines in every model request, independently of thinking mode or explicit skill calls. Guarantees loading, not perfect model compliance."
+  }
+}

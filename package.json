@@ -1,0 +1,90 @@
+{
+  "name": "dsh-v41-pro",
+  "version": "1.11.0",
+  "description": "V4.1 Pro 工程增强：真实测试证据、可恢复台账、独立复审、语言与小说 Skill、长篇小说工作区、发散/聚焦/透彻（仅 max）/自动思考模式、Reasoning Max 3.0 分层推理编排（并行候选/MCTS/PRM/多模型路由/RL 日志）、验收闸门、预测校准、复盘规则库、代码精简审查，常驻 ethical-conduct 行为准则，以及内置的全模态媒体工具（视频/音频/图片）。适配 DSH 0.2.2-rc.5；不改变底层模型能力。",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "dsh-bundle",
+    "cordis",
+    "deepseek",
+    "agent"
+  ],
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./escalator": "./src/escalator.js",
+    "./ledger": "./src/ledger.js",
+    "./verifier": "./src/verifier.js",
+    "./acceptance": "./src/acceptance.js",
+    "./calibration": "./src/calibration.js",
+    "./retro": "./src/retro.js",
+    "./shrink": "./src/shrink.js",
+    "./tempo": "./src/tempo.js",
+    "./forker": "./src/forker.js",
+    "./critic": "./src/critic.js",
+    "./cartographer": "./src/cartographer.js",
+    "./language": "./src/language.js",
+    "./fiction": "./src/fiction.js",
+    "./novel": "./src/novel.js",
+    "./thinking": "./src/thinking.js",
+    "./ethical-conduct": "./src/ethical-conduct.js",
+    "./ethical-conduct/locale/*.json": "./locale/ethical-conduct/*.json",
+    "./ethical-conduct/icon": "./icon.svg",
+    "./omni": "./omni/index.js",
+    "./client": "./client.js",
+    "./thinking/locale/*.json": "./locale/thinking/*.json",
+    "./thinking/icon": "./icon.svg",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "skills/**/*.md",
+    "locale/thinking/*.json",
+    "locale/ethical-conduct/*.json",
+    "src/**/*.js",
+    "omni/**/*.js",
+    "omni/**/*.py",
+    "omni/LICENSE",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md",
+    "LICENSE",
+    "docs/**/*.md",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "selfcheck": "node scripts/selfcheck.mjs",
+    "runtime": "node scripts/loop-runtime.mjs",
+    "reliability": "node scripts/reliability.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-api-session-controller",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-api-remotes"
+      ]
+    }
+  },
+  "dependencies": {
+    "zod": "4.6.6"
+  }
+}

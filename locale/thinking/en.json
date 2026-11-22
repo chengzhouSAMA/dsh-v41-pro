@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Thinking modes",
+    "description": "Divergent (minimum low), focused (minimum high), thorough (strictly max), and automatic phase switching. Thorough mode investigates root causes, tests assumptions and counterexamples, and cross-checks evidence. Choose Thinking mode in the model menu or use /thinking auto, divergent, focused, thorough, off. Thorough requires declared max support; high/xhigh are not substitutes. Turning the module off restores its previous effort selection."
+  }
+}

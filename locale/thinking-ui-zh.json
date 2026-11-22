@@ -1,0 +1,17 @@
+{
+  "mode.label": "思考模式",
+  "mode.option.auto": "自动",
+  "mode.option.divergent": "发散",
+  "mode.option.focused": "聚焦",
+  "mode.option.thorough": "透彻",
+  "mode.option.off": "关闭",
+  "mode.floor.auto": "自动在发散 / 聚焦间切换",
+  "mode.floor.divergent": "最低 low",
+  "mode.floor.focused": "最低 high",
+  "mode.floor.thorough": "仅 max",
+  "mode.floor.off": "关闭本模块（恢复之前档位）",
+  "mode.phase.divergent": "发散",
+  "mode.phase.focused": "聚焦",
+  "mode.phase.thorough": "透彻",
+  "mode.failed": "无法保存思考模式：{message}"
+}

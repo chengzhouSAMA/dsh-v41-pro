@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "思考模块 · 发散、聚焦与透彻",
+    "description": "发散最低 low，聚焦最低 high，透彻严格限定 max；自动模式先发散再聚焦，连续失败时有限回溯。透彻模式自动追问根因、核验假设与反例、交叉验证。点击模型菜单中的思考模式，或使用 /thinking auto、divergent、focused、thorough、off。模型必须声明支持所需档位；透彻不以 high/xhigh 替代 max。关闭恢复模块调整前的档位。"
+  }
+}

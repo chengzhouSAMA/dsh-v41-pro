@@ -1,0 +1,7 @@
+node_modules/
+.restart-log.txt
+.tmp-*
+*.log
+
+# Local reference asset, not part of the published bundle
+official-v41-benchmark.png

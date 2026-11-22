@@ -1,0 +1,211 @@
+# V4.1 Pro 工程增强的 bundle patch（十三个 Host 模块 + 一个 Client 入口）。
+#
+# 这个文件在 profile 的 bundle 层里被应用（早于用户自己的
+# ~/.dsh/profiles/<profile>/cordis.patch.yml），所以用户可以在自己的 patch 里
+# 用同一个 id 覆盖任意一行。
+#
+# Host 插件独立成行：harness 的 patch 语义是「整行替换 config」而不是合并，
+# 拆开之后调整其中一个不会牵动其他模块。不想要的直接
+#   - id: v41pro-forker
+#     disabled: true
+
+- insert:
+    # Client 模块只由裸包名入口加载；Host 逻辑仍由下面的独立行管理。
+    - id: v41pro-client
+      name: 'dsh-v41-pro'
+      config:
+        clientOnly: true
+
+    # 常驻行为准则：完整正文每次请求自动加载，不受 /thinking off 影响。
+    - id: v41pro-ethical-conduct
+      name: 'dsh-v41-pro/ethical-conduct'
+
+    # ── 1. 卡住探测 + 模型升级 ──────────────────────────────────────────────
+    # 主菜：检测到原地打转之后，把那几步临时升级到 v4-pro。
+    # 想先观察再动手，把 mode 改成 advise（只提醒、不换模型）。
+    - id: v41pro-escalator
+      name: 'dsh-v41-pro/escalator'
+      config:
+        # 默认只提醒；确认目标 provider 支持 proModel 后再改为 escalate。
+        mode: advise
+        proModel: deepseek-v4-pro
+        proReasoningEffort: high
+        language: zh
+        threshold: 3
+        repeatThreshold: 4
+        failureThreshold: 3
+        cooldownSteps: 3
+        maxInterventions: 2
+        maxEscalations: 2
+        escalateSteps: 4
+
+    # ── 2. 状态外置台账 ────────────────────────────────────────────────────
+    # 把「改过什么 / 什么失败过 / 最近跑了什么」写到
+    # $DSH_HOME/v41pro/ledger/<sessionId>.json，每 6 步重注入一次。
+    - id: v41pro-ledger
+      name: 'dsh-v41-pro/ledger'
+      config:
+        everySteps: 6
+        maxFiles: 6
+        maxFailures: 4
+        maxCommands: 5
+        language: zh
+
+    # ── 3. 验证闸门 ────────────────────────────────────────────────────────
+    # 改动之后没有成功验证就收尾 → 续命一次，要求先跑验证。
+    # commands 留空也能用：模型可以直接给 pro_verify 传 command。
+    # 建议按你的项目填上，这样催促文案里会给出确切命令。
+    - id: v41pro-verifier
+      name: 'dsh-v41-pro/verifier'
+      config:
+        gate: true
+        maxNudges: 1
+        language: zh
+        commands: []
+        # 例子：
+        # commands:
+        #   - name: test
+        #     command: pnpm test
+        #     timeoutMs: 600000
+        #   - name: typecheck
+        #     command: pnpm typecheck
+
+    # ── 3b. 验收闸门 ────────────────────────────────────────────────────────
+    # 任务开始前把验收标准定义成可执行检查；收尾时仍有未验证项就续命一次。
+    # 工具：acceptance（define/check/list/complete/clear）；命令：/accept。
+    - id: v41pro-acceptance
+      name: 'dsh-v41-pro/acceptance'
+      config:
+        gate: true
+        maxNudges: 1
+        timeoutMs: 120000
+        language: zh
+
+    # ── 4. 预算节拍器 ──────────────────────────────────────────────────────
+    # 步数 / 挂钟时间 / 同一工具失败次数，三份预算各自只提醒一次。
+    # mode: steer 会在收尾时强制续命一次逼它总结；默认只提醒。
+    - id: v41pro-tempo
+      name: 'dsh-v41-pro/tempo'
+      config:
+        mode: advise
+        maxStepsPerTurn: 60
+        maxWallClockMs: 1800000
+        maxToolFailuresPerTool: 5
+        maxNoticesPerTurn: 2
+        language: zh
+
+    # ── 5. 决策点分叉 ──────────────────────────────────────────────────────
+    # pro_fork：并行 spawn N 个全新上下文的子代理，各出一个方案候选。
+    # 很贵，只在真正拿不准的岔路口用。childModel 留空继承父代理。
+    - id: v41pro-forker
+      name: 'dsh-v41-pro/forker'
+      config:
+        provider: spawn
+        count: 3
+        maxCount: 4
+        timeoutMs: 180000
+        childModel: ''
+        language: zh
+
+    # ── 6. 独立视角复审 ────────────────────────────────────────────────────
+    # pro_critique：一个没参与过这份工作的子代理，只读、只挑错。
+    - id: v41pro-critic
+      name: 'dsh-v41-pro/critic'
+      config:
+        provider: spawn
+        timeoutMs: 240000
+        childModel: ''
+        language: zh
+
+    # ── 7. 上下文地图 ──────────────────────────────────────────────────────
+    # 压缩发生后重建「到哪去找」；everySteps > 0 才额外周期性注入。
+    # 默认只在压缩后触发，避免和台账卡片同一轮叠罗汉。
+    - id: v41pro-cartographer
+      name: 'dsh-v41-pro/cartographer'
+      config:
+        everySteps: 0
+        maxEdited: 8
+        maxRead: 10
+        language: zh
+
+    # ── 8. 按需语言优化 Skill ────────────────────────────────────────────────
+    # 通过 DSH 原生目录加载，不把正文重复注入每一步。
+    - id: v41pro-language
+      name: 'dsh-v41-pro/language'
+      config:
+        enabled: true
+
+    # ── 9. 按需文学写作 Skill ────────────────────────────────────────────────
+    # 小说正文创作、续写、人物因果、节奏、伏笔与章末钩子的专项检查。
+    - id: v41pro-fiction
+      name: 'dsh-v41-pro/fiction'
+      config:
+        enabled: true
+
+    # ── 11. 发散、聚焦与透彻思考模块 ────────────────────────────────────────
+    # 模型菜单或 /thinking 切换；发散最低 low，聚焦最低 high，透彻仅 max；自动按阶段切换。
+    - id: v41pro-thinking
+      name: 'dsh-v41-pro/thinking'
+      config:
+        enabled: true
+        mode: auto
+        # Reasoning Max 3.0：由 thinking 模块动态加载，不新增 patch 行；这些是默认编排参数。
+        reasoningMax:
+          enabled: true
+          mode: auto
+          workers: 3
+          routerEpsilon: 0.1
+          pruneThreshold: 0.25
+          maxRefine: 1
+
+    # ── 10. 长篇小说工作区 ──────────────────────────────────────────────────
+    # 开启小说时建立大纲与数据库；每回合注入现状卡；用户要求可记录、可废弃。
+    - id: v41pro-novel
+      name: 'dsh-v41-pro/novel'
+      config:
+        enabled: true
+
+    # ── 13. 工程闭环：预测校准 / 复盘规则 / 代码精简 ─────────────────────────
+    # forecast + settle 记预测与结算，/calibration 看 Brier 与耗时误差。
+    # retro + rules 把失败沉淀成规则，后续任务按关键词回注；/rules 管理。
+    # code_shrink 强制写完代码后逐个文件给「删 / 并 / 保留」的理由，未审查不得收尾。
+    - id: v41pro-calibration
+      name: 'dsh-v41-pro/calibration'
+      config:
+        enabled: true
+        cap: 500
+        language: zh
+
+    - id: v41pro-retro
+      name: 'dsh-v41-pro/retro'
+      config:
+        enabled: true
+        injectRules: true
+        maxRules: 200
+        maxInjected: 3
+        language: zh
+
+    - id: v41pro-shrink
+      name: 'dsh-v41-pro/shrink'
+      config:
+        enabled: true
+        gate: true
+        maxNudges: 1
+        maxFiles: 20
+        language: zh
+
+    # ── 12. 全模态媒体（内置自 ZTR66/dsh-omni，MIT）────────────────────────
+    # 11 个工具：探测 / 视频抽帧 / 音频分析 / 转写 / 语音合成 / 剪辑 / 合成 /
+    # 图片生成；视频交给独立的 dsh-remotion 用代码渲染。另注册 omni-media 运行时
+    # Skill 与「全模态」设置页。
+    # 依赖按缺失报告、不崩溃：没装 ffmpeg 或 Python 库时工具仍在，只是说明缺什么。
+    - id: v41pro-omni
+      name: 'dsh-v41-pro/omni'
+      config:
+        ffmpegPath: ''
+        pythonPath: ''
+        asr:
+          mode: auto
+          localModel: small
+        image:
+          providers: []
