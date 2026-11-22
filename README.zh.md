@@ -166,12 +166,12 @@ powershell -File scripts/loop-runtime.ps1   # Windows：真实 DSH agent loop + 
 
 | 评测 | 对象与结果 |
 |---|---|
-| [顶级难度 BUG 修复](evaluation/bugfix-2026-11-14.zh.md) · [EN](evaluation/bugfix-2026-11-14.en.md) | GPT-6 Astra 95.5 · Flash＋插件 92.5 · Flash 无插件 91.5（Claude Opus 5.5 / Kimi K3.1 Pro 评审） |
+| [顶级难度 BUG 修复](evaluation/bugfix-2026-11-14.zh.md) · [EN](evaluation/bugfix-2026-11-14.en.md) | GPT-6 Astra 95.5 · Flash＋插件 92.5 · Flash 无插件 91.5（Claude Opus 5.5 / Kimi K3.1 Pro 评审）；另含 2026-11-21 dsv41 新插件版补充评审 96.5 |
 | [AegisQueue](evaluation/aegisqueue-2026-11-22.zh.md) · [EN](evaluation/aegisqueue-2026-11-22.en.md) | 官方冻结分：dsv4.1、插件版、gpt6 Astra 均 100.000，glm5.3flash 96.952；另附事后严格复评 |
 
 - 索引与共同边界：[evaluation/README.md](evaluation/README.md)
 - 机器可读结果：[evaluation/data/results.json](evaluation/data/results.json)
-- 评审图：[顶级难度 BUG 修复 · 三 AI 多维评审](evaluation/assets/bugfix-review-2026-11-14.jpg)
+- 评审图：[顶级难度 BUG 修复 · 四份答卷 12 维画像](evaluation/assets/bugfix-review-2026-11-21.jpg)
 
 ## 工程结构
 

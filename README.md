@@ -166,12 +166,12 @@ The repository also keeps reviewable summaries and score figures from two engine
 
 | Evaluation | Subjects and results |
 |---|---|
-| [Hardest bug fix](evaluation/bugfix-2026-11-14.en.md) · [中文](evaluation/bugfix-2026-11-14.zh.md) | GPT-6 Astra 95.5 · Flash + plugin 92.5 · Flash without plugin 91.5 (reviewed by Claude Opus 5.5 / Kimi K3.1 Pro) |
+| [Hardest bug fix](evaluation/bugfix-2026-11-14.en.md) · [中文](evaluation/bugfix-2026-11-14.zh.md) | GPT-6 Astra 95.5 · Flash + plugin 92.5 · Flash without plugin 91.5 (reviewed by Claude Opus 5.5 / Kimi K3.1 Pro); plus the 2026-11-21 dsv41 supplementary review at 96.5 |
 | [AegisQueue](evaluation/aegisqueue-2026-11-22.en.md) · [中文](evaluation/aegisqueue-2026-11-22.zh.md) | Official frozen scores: dsv4.1, plugin, and gpt6 Astra all 100.000; glm5.3flash 96.952; plus an after-the-fact strict re-review |
 
 - Index and shared boundaries: [evaluation/README.md](evaluation/README.md)
 - Machine-readable results: [evaluation/data/results.json](evaluation/data/results.json)
-- Review figure: [Hardest bug fix · three-way review](evaluation/assets/bugfix-review-2026-11-14.jpg)
+- Review figure: [Hardest bug fix · twelve-dimensional profiles for four submissions](evaluation/assets/bugfix-review-2026-11-21.jpg)
 
 ## Layout
 

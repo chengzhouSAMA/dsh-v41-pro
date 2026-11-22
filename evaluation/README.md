@@ -8,10 +8,10 @@
 
 | 评测 | 日期 | 题目 | 对象 |
 |---|---|---|---|
-| [顶级难度 BUG 修复](bugfix-2026-11-14.zh.md) · [EN](bugfix-2026-11-14.en.md) | 2026-11-14 | DurableKV 持久化存储修 bug | Flash 无插件 / Flash＋v4.1 Pro v1.2.0 / GPT-6 Astra |
+| [顶级难度 BUG 修复](bugfix-2026-11-14.zh.md) · [EN](bugfix-2026-11-14.en.md) | 2026-11-14 | DurableKV 持久化存储修 bug | Flash 无插件 / Flash＋v4.1 Pro v1.2.0 / GPT-6 Astra；另含 2026-11-21 dsv41 补充评审 |
 | [AegisQueue](aegisqueue-2026-11-22.zh.md) · [EN](aegisqueue-2026-11-22.en.md) | 2026-11-22 | AegisQueue 持久化队列实现 | dsv4.1 / dsv4.1 插件版 / gpt6 Astra / glm5.3flash |
 
-- 评审图：[顶级难度 BUG 修复 · 三 AI 多维评审](assets/bugfix-review-2026-11-14.jpg)
+- 评审图：[顶级难度 BUG 修复 · 四份答卷 12 维画像](assets/bugfix-review-2026-11-21.jpg)
 - 机器可读汇总：[results.json](data/results.json)
 - 早期写作对照（非盲、单次、主观，不是基准）：[novel/REPORT.md](novel/REPORT.md)
 
@@ -19,6 +19,6 @@
 
 - **名称是答卷目录标签。** 没有独立核实的完整会话记录，模型精确版本、推理档位、工具预算和上下文污染情况部分未知。
 - **单题单次。** 一次提交的成功或失败不能外推为总体能力，也不能把“插件版 − 普通版”的差值直接归因于插件。
-- **评分者不同。** 顶级难度题的多维评审由 Claude Opus 5.5 与 Kimi K3.1 Pro 给出（用户提供）；AegisQueue 的正式分来自冻结的自动评分器，严格复评是用户要求的事后加严分析。
+- **评分者不同。** 顶级难度题的历史三组多维评审由 Claude Opus 5.5 与 Kimi K3.1 Pro 给出（用户提供），dsv41 补充评审由本次会话完成；AegisQueue 的正式分来自冻结的自动评分器，严格复评是用户要求的事后加严分析。
 - **满分不等于无缺陷。** 冻结测试未覆盖的边界仍可能存在缺陷，报告会单独列出。
 - **小数是记账精度。** 0.001 不是统计置信度。
