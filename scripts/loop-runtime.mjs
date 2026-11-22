@@ -192,10 +192,12 @@ try {
       },
     },
   ])
-  assert.equal(notices('v41pro-acceptance', batch, 'notice').length, 1, '未验证收尾应催一次')
-  assert.match(notices('v41pro-acceptance', batch, 'notice')[0], /未验证|验收/)
-  assert.equal(notices('v41pro-acceptance', batch, 'notice')[0].includes('文件存在且非空'), true)
-  assert.equal(batch.length, 3, '工具 → 收尾 → 催促后续命；不得无限循环')
+  const acceptNotices = notices('v41pro-acceptance', batch, 'notice')
+  assert.ok(acceptNotices.length >= 1, '未验证收尾应催办')
+  assert.match(acceptNotices[0], /未验证|验收/)
+  assert.equal(acceptNotices[0].includes('文件存在且非空'), true)
+  assert.match(acceptNotices[acceptNotices.length - 1], /⚠ 未验证/, '升级链最终要求在回答末尾标注未验证')
+  assert.ok(batch.length <= 8, '催促升级不得无限循环')
 
   batch = await run('补齐验收并交付', [
     { tool: 'acceptance', args: { action: 'check' } },
@@ -211,8 +213,10 @@ try {
   batch = await run('写一个文件就收尾', [
     { tool: 'write', args: { path: codeFile, content: 'const value = 1\n\n\n' } },
   ])
-  assert.equal(notices('v41pro-shrink', batch, 'notice').length, 1, '写完代码未做精简审查应催一次')
-  assert.match(notices('v41pro-shrink', batch, 'notice')[0], /精简|更短|code_shrink/)
+  const shrinkNotices = notices('v41pro-shrink', batch, 'notice')
+  assert.ok(shrinkNotices.length >= 1, '写完代码未做精简审查应催办')
+  assert.match(shrinkNotices[0], /精简|更短|code_shrink/)
+  assert.match(shrinkNotices[shrinkNotices.length - 1], /⚠ 未验证/, '升级链最终要求在回答末尾标注未验证')
 
   batch = await run('做精简审查后交付', [
     {

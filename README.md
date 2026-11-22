@@ -9,8 +9,8 @@ V4.1 Pro does not train a model, and it won't pretend to make one smarter. It pi
 
 A plugin bundle for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH): 17 host modules, a client-side thinking menu, reasoning controls from divergent to thorough, and an engineering loop of **acceptance → calibration → retro → shrink**. It also ships language and fiction skills, a long-form novel workspace, and omnimodal media tools.
 
-![version](https://img.shields.io/badge/version-1.11.0-4B5BD6)
-![tests](https://img.shields.io/badge/tests-189%20passing-2EA043)
+![version](https://img.shields.io/badge/version-1.12.0-4B5BD6)
+![tests](https://img.shields.io/badge/tests-216%20passing-2EA043)
 ![license](https://img.shields.io/badge/license-MIT-2EA043)
 ![DSH](https://img.shields.io/badge/DSH-0.2.2--rc.5-4B5BD6)
 
@@ -74,14 +74,14 @@ State lives in `$DSH_HOME/v41pro/reasoning-max/`.
 
 | Module | Capability |
 |---|---|
-| `acceptance` | Executable acceptance criteria: `cmd` runs through the real shell for an exit code, `file` checks existence and non-emptiness, `manual` needs a human; a pending item at turn end triggers one steer |
+| `acceptance` | Executable acceptance criteria: `cmd` runs through the real shell for an exit code, `file` checks existence and non-emptiness, `manual` needs a human; a pending item at turn end escalates from a reminder to a hard reminder, then to a `⚠ unverified` banner in the answer |
 | `calibration` | `forecast` records a probability and expected duration before the work; `settle` closes it afterwards; reports Brier score, overconfidence, and duration MAE |
 | `retro` | Records what happened, a verifiable root cause, and a lesson; reusable rules are recalled by keyword in later tasks |
 | `shrink` | After writing code, every file needs a remove / merge / keep decision with a reason; line counts are measured on disk |
 
 Tools: `acceptance`, `forecast`, `settle`, `retro`, `rules`, `code_shrink`. Commands: `/accept`, `/calibration`, `/rules`, `/shrink`.
 
-The gate's force comes from a single `agent.steer` at turn end — **it is not a permission lock**. A model can still answer with one dismissive sentence; `code_shrink` records the reasons it gave and the on-disk line counts, not a semantic guarantee of optimal brevity. Rule matching is keyword recall, not semantic understanding.
+The gate's force comes from an `agent.steer` escalation chain (reminder → hard reminder → unverified banner) — **it is not a permission lock**. A model can still answer with one dismissive sentence; `code_shrink` records the reasons it gave and the on-disk line counts, not a semantic guarantee of optimal brevity. Rule matching is keyword recall, not semantic understanding.
 
 ## All modules
 
@@ -143,7 +143,7 @@ The bundle stays on the current provider and probes the target model and reasoni
 ## Verification
 
 ```bash
-npm test                        # 21 test files, 189 cases
+npm test                        # 26 test files, 216 cases
 npm run selfcheck               # exports, locales, patch rows, icon resources
 npm run reliability             # six plugin-mechanism scenarios
 powershell -File scripts/loop-runtime.ps1   # Windows: real DSH agent loop + fixture model
@@ -153,7 +153,7 @@ Latest verification in this repository:
 
 | Check | Result |
 |---|---|
-| `node --test test/*.test.mjs` | 189 passed / 0 failed (530 ms) |
+| `node --test test/*.test.mjs` | 216 passed / 0 failed (1.4 s) |
 | `node scripts/selfcheck.mjs` | 18 exports, 18 patch rows |
 | `scripts/loop-runtime.ps1` | PASS: acceptance gate, shrink gate, calibration settlement, rule injection |
 | Live `reasoning_max` call | 4×4 grid shortest paths = 70, `stop=fast_path calls=2`; forced low = 1 candidate + 1 judge + 1 synthesis |
@@ -202,6 +202,7 @@ evaluation/           two engineering evaluations, one writing comparison, figur
 
 ## Releases
 
+- **1.12.0** — Evidence-based reward (0.7 cap without hard evidence), gate escalation (reminder / hard reminder / unverified banner), output redaction with 5 MB rotated logs, plus rename and state-migration scripts.
 - **1.11.0** — Reasoning Max 3.0: tiered compute, parallel candidates, MCTS, PRM, multi-model routing, and RL logs.
 - **1.10.0** — Engineering loop: acceptance, calibration, retro, shrink.
 - **1.9.2** — Thorough mode: strict `max`, root causes, and counterexamples.

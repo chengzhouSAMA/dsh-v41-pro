@@ -26,6 +26,8 @@ import { createNotice, createSnapshot } from './core/message.js'
 import { sourceNote } from './core/text.js'
 import { truncate } from './core/util.js'
 import { SessionJson, makeId, v41Dir } from './core/persist.js'
+import { GateTracker, banner } from './core/gate-escalation.js'
+import { redact } from './core/safe-exec.js'
 
 export const name = 'v41pro-acceptance'
 
@@ -37,7 +39,7 @@ export const DEFAULTS = {
   /** 是否启用收尾闸门。false 时只提供工具与命令。 */
   gate: true,
   /** 一回合最多催几次验收检查。 */
-  maxNudges: 1,
+  maxNudges: 2,
   language: 'zh',
   /** 一个会话最多保存多少条验收标准。 */
   maxCriteria: 20,
@@ -121,7 +123,7 @@ export function apply(ctx, rawConfig = {}) {
     return { ...decision, messages: [snapshot, ...existing] }
   }), 'v41pro-acceptance pre-step')
 
-  // ── 收尾门禁：未验证就续命一次 ──────────────────────────────────────────
+  // ── 收尾门禁：提醒 → 强提醒 → 在回答里标注未验证 ────────────────────────
   ctx.effect(() => ctx.on('agent/turn-stopping', (payload) => {
     if (!cfg.gate) return
     try {
@@ -131,16 +133,33 @@ export function apply(ctx, rawConfig = {}) {
       syncTurn(state, payload?.turn)
       const pending = unverifiedOf(state.criteria)
       if (pending.length === 0) return
-      if (state.nudges >= cfg.maxNudges) {
-        logger.warn(`本轮已催过 ${state.nudges} 次验收检查，放行收尾`)
+      if (state.gateReported) return
+      const tracker = state.gateTracker ?? (state.gateTracker = new GateTracker({ maxSteers: Math.max(1, cfg.maxNudges) }))
+      const progress = state.lastPending != null && pending.length < state.lastPending
+      state.lastPending = pending.length
+      const step = tracker.next('验收', { pending: pending.map(criterion => criterion.text), progress })
+      if (step.action === 'pass') return
+      if (step.action === 'report-unverified') {
+        state.gateReported = true
+        logger.warn(`本轮已提醒 ${cfg.maxNudges} 次，仍有 ${pending.length} 条未验证；要求在回答末尾标注`)
+        agent.steer(createNotice({
+          kind: name,
+          summary: `验收仍未验证：${pending.length} 项`,
+          text: `${banner('验收', pending.map(criterion => criterion.text))}\n\n${cfg.language === 'en' ? 'This is the last reminder: copy that line verbatim as the final line of your answer, then stop. Do not loop.' : '这是最后一次提醒：把上面那行「⚠ 未验证」原样放在最终回答的最后一行，然后结束，不要继续循环。'}\n\n${sourceNote(cfg.language)}`,
+        }))
+        queueSave(state)
         return
       }
       state.nudges += 1
       logger.info(`收尾拦截：${pending.length}/${state.criteria.length} 条验收标准未验证`)
+      const strong = step.action === 'steer-strong'
+      const lead = strong
+        ? (cfg.language === 'en' ? 'No progress since the last reminder. You must use tools (run the command / check the file), not just prose.\n\n' : '上次提醒后仍无进展：必须真的调用工具（跑命令 / 查文件），只用文字回答不算完成。\n\n')
+        : ''
       agent.steer(createNotice({
         kind: name,
         summary: `验收未通过：${pending.length} 项待验证`,
-        text: gateNudge({ language: cfg.language, pending, total: state.criteria.length }),
+        text: `${lead}${gateNudge({ language: cfg.language, pending, total: state.criteria.length })}`,
       }))
       queueSave(state)
     } catch (error) {
@@ -458,7 +477,7 @@ export function apply(ctx, rawConfig = {}) {
         return { status: 'verified', evidence: `exit ${exitCode}` }
       }
       const tail = truncate(
-        (readStream(result?.stderr) || readStream(result?.stdout)).replace(/\s+/g, ' ').trim(),
+        redact((readStream(result?.stderr) || readStream(result?.stdout)).replace(/\s+/g, ' ').trim()),
         120,
       )
       return {
@@ -525,6 +544,10 @@ function createState(key = '') {
     /** @type {Array<any>} */
     criteria: [],
     nudges: 0,
+    /** 本回合门控升级：null 表示新回合尚未开始。 */
+    gateTracker: null,
+    gateReported: false,
+    lastPending: null,
     turn: 0,
     /** 本回合是否已经注入过待办快照。 */
     notifiedTurn: false,
@@ -555,6 +578,9 @@ function syncTurn(state, turn) {
   if (turn === state.turn) return
   state.turn = turn
   state.nudges = 0
+  state.gateTracker = null
+  state.gateReported = false
+  state.lastPending = null
   state.notifiedTurn = false
 }
 

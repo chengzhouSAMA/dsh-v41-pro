@@ -9,8 +9,8 @@ V4.1 Pro 不训练模型，也不假装让它更聪明。它把该记住的目�
 
 这是面向 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH）的插件包：17 个 Host 模块、一个 Client 思考菜单，一套从发散到透彻的推理控制，以及“验收 → 校准 → 复盘 → 精简”的工程闭环。另含语言 / 文学 Skill、长篇小说工作区与全模态媒体工具。
 
-![version](https://img.shields.io/badge/version-1.11.0-4B5BD6)
-![tests](https://img.shields.io/badge/tests-189%20passing-2EA043)
+![version](https://img.shields.io/badge/version-1.12.0-4B5BD6)
+![tests](https://img.shields.io/badge/tests-216%20passing-2EA043)
 ![license](https://img.shields.io/badge/license-MIT-2EA043)
 ![DSH](https://img.shields.io/badge/DSH-0.2.2--rc.5-4B5BD6)
 
@@ -74,14 +74,14 @@ node install.mjs --uninstall
 
 | 模块 | 能力 |
 |---|---|
-| `acceptance` | 可执行验收标准：`cmd` 走真实 shell 取退出码，`file` 检查存在且非空，`manual` 需人工确认；收尾仍有未验证项时续命一次 |
+| `acceptance` | 可执行验收标准：`cmd` 走真实 shell 取退出码，`file` 检查存在且非空，`manual` 需人工确认；收尾仍有未验证项时先提醒、再强提醒，仍无进展则要求在回答末尾标注「⚠ 未验证」 |
 | `calibration` | 交付前 `forecast` 记概率/耗时，事后 `settle`；统计 Brier、过度自信与耗时 MAE |
 | `retro` | 复盘写现象、根因、教训，并沉淀可复用规则；后续任务按关键词命中并回注 |
 | `shrink` | 写完代码必须逐个文件给出「删 / 并 / 保留」的理由；行数由磁盘实测 |
 
 对应工具：`acceptance`、`forecast`、`settle`、`retro`、`rules`、`code_shrink`；命令：`/accept`、`/calibration`、`/rules`、`/shrink`。
 
-门的强制力来自收尾时 `agent.steer` 续命一次，**不是权限锁**。模型仍可能敷衍一句话；`code_shrink` 记录的是它给出的理由与磁盘行数，不代表做了语义级最优精简。规则匹配是关键词召回，不是语义理解。
+门的强制力来自收尾时的 `agent.steer` 升级链（提醒 → 强提醒 → 在回答末尾标注未验证），**不是权限锁**。模型仍可能敷衍一句话；`code_shrink` 记录的是它给出的理由与磁盘行数，不代表做了语义级最优精简。规则匹配是关键词召回，不是语义理解。
 
 ## 全部模块
 
@@ -143,7 +143,7 @@ node install.mjs --uninstall
 ## 验证
 
 ```bash
-npm test                        # 21 个测试文件，189 个用例
+npm test                        # 26 个测试文件，216 个用例
 npm run selfcheck               # 导出、locale、patch、图标资源检查
 npm run reliability             # 6 个插件机制场景
 powershell -File scripts/loop-runtime.ps1   # Windows：真实 DSH agent loop + fixture 模型
@@ -153,7 +153,7 @@ powershell -File scripts/loop-runtime.ps1   # Windows：真实 DSH agent loop + 
 
 | 检查 | 结果 |
 |---|---|
-| `node --test test/*.test.mjs` | 189 通过 / 0 失败（530 ms） |
+| `node --test test/*.test.mjs` | 216 通过 / 0 失败（1.4 s） |
 | `node scripts/selfcheck.mjs` | 18 个导出、18 个 patch 行 |
 | `scripts/loop-runtime.ps1` | PASS：验收闸门、精简闸门、预测结算、规则注入 |
 | 运行实例真实调用 `reasoning_max` | 4×4 网格最短路径 70，`stop=fast_path calls=2`；强制 low 时 1 候选 + 1 评审 + 1 综合 |
@@ -179,13 +179,13 @@ powershell -File scripts/loop-runtime.ps1   # Windows：真实 DSH agent loop + 
 index.js              插件入口，装配 17 个 Host 模块
 client.js             Client：思考模式菜单 + 全模态设置页
 src/                  Host 模块
-  core/               持久化、状态、消息、文本、证据与能力探测
+  core/               持久化、状态、消息、文本、证据、能力探测、奖励与安全执行
   reasoning-max.js    Reasoning Max 3.0 引擎（thinking 私有库）
 cordis.patch.yml      18 行 bundle patch
 skills/               随包 Skill 正文
 locale/               UI 文案（中 / 英）
 omni/                 全模态媒体工具（源自 dsh-omni，MIT，含删减）
-test/                 21 个 node:test 文件
+test/                 26 个 node:test 文件
 scripts/              selfcheck、真实 loop、思考链、伦理准则与可靠性脚本
 docs/                 设计说明与团队契约
 evaluation/           两次工程评测、写作对照、评分图与机器可读结果
@@ -202,6 +202,7 @@ evaluation/           两次工程评测、写作对照、评分图与机器可�
 
 ## 版本
 
+- **1.12.0** — 证据化奖励（无硬证据上限 0.7）、软门控升级（提醒/强提醒/未验证横幅）、输出脱敏与 5 MB 轮转日志，以及改名与状态迁移脚本。
 - **1.11.0** — Reasoning Max 3.0：分层算力、并行候选、MCTS、PRM、多模型路由与 RL 日志。
 - **1.10.0** — 工程闭环四件套：验收、校准、复盘、精简。
 - **1.9.2** — 透彻模式：严格 `max`，追问根因与反例。

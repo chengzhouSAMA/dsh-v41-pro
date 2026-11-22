@@ -10,9 +10,11 @@
  * 版本线对应：1.0 并行候选+critic；1.5 MCTS；2.0 PRM；2.5 自适应算力；3.0 多模型路由+RL 数据。
  */
 
-import { appendFile, mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { join } from 'node:path'
+import { computeReward } from './core/reward.js'
+import { appendJsonlCapped } from './core/safe-exec.js'
 
 export const RMAX_VERSION = '3.0-js'
 export const ROLES = Object.freeze(['generator', 'prm', 'critic', 'synthesizer'])
@@ -415,8 +417,7 @@ function textOf(message) {
 }
 
 async function appendJsonl(file, value) {
-  await mkdir(dirname(file), { recursive: true })
-  await appendFile(file, `${JSON.stringify(value)}\n`, 'utf8')
+  await appendJsonlCapped(file, value, { maxBytes: 5 * 1024 * 1024 })
 }
 
 export function buildModelPool(cfg, selection) {
@@ -806,8 +807,10 @@ export function createEngine({ chat, config = {}, selection, dir, logger = null 
 
     const tree = search?.tree ?? null
     const best = tree ? tree.bestTerminal() : null
-    const reward = { value: proxyReward(review, best ? best.pv : null), source: 'proxy', weight: 0.3 }
-    router.update(modelsDict(), plan.tier, reward.value, reward.weight)
+    const proxy = proxyReward(review, best ? best.pv : null)
+    const scored = computeReward({ judge: { score: proxy } })
+    const reward = { value: scored.reward, source: scored.evidence === 'hard' ? 'hard' : 'soft', weight: 0.3 }
+    if (scored.update) router.update(modelsDict(), plan.tier, reward.value, reward.weight)
     await saveRouter()
     const usage = meter.snapshot()
     const elapsed = (Date.now() - startedAt) / 1000

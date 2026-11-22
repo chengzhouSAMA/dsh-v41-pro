@@ -25,6 +25,7 @@ import { createNotice } from './core/message.js'
 import { sourceNote } from './core/text.js'
 import { SessionJson, v41Dir } from './core/persist.js'
 import { truncate } from './core/util.js'
+import { GateTracker, auditShrinkDecisions, banner } from './core/gate-escalation.js'
 
 export const name = 'v41pro-shrink'
 
@@ -35,7 +36,7 @@ export const DEFAULTS = {
   /** 是否启用收尾门禁。false 时只提供 code_shrink 工具与命令。 */
   gate: true,
   /** 一回合最多催几次做精简审查。 */
-  maxNudges: 1,
+  maxNudges: 2,
   language: 'zh',
   /** 一次审查最多覆盖多少个文件。 */
   maxFiles: 20,
@@ -113,6 +114,9 @@ function createState() {
     /** @type {Record<string, number> | null} */
     lastStats: null,
     nudges: 0,
+    gateTracker: null,
+    gateReported: false,
+    lastPending: null,
     turn: 0,
     /** @type {Promise<void>} */
     ready: Promise.resolve(),
@@ -141,6 +145,9 @@ export function apply(ctx, rawConfig = {}) {
       if (payload.turn !== state.turn) {
         state.turn = payload.turn
         state.nudges = 0
+        state.gateTracker = null
+        state.gateReported = false
+        state.lastPending = null
         state.edited.clear()
         state.baselines.clear()
       }
@@ -395,6 +402,9 @@ export function apply(ctx, rawConfig = {}) {
     state.edited.clear()
     state.baselines.clear()
 
+    const audit = auditShrinkDecisions(findings.map(finding => ({ file: finding.file, action: finding.action, reason: finding.detail })))
+    const weak = audit.ok ? '' : `\n\n⚠ 审查理由偏弱：${[...new Set([...audit.perfunctory, ...audit.duplicates])].slice(0, 5).join('、')}；请补充具体依据（删除什么 / 并到哪里 / 为什么必须保留）。`
+
     const key = agent ? sessionKey(agent) : ''
     if (key) {
       try {
@@ -417,7 +427,7 @@ export function apply(ctx, rawConfig = {}) {
       linesAfter,
       saved: stats.saved,
       findings,
-      text: successText(findings, stats),
+      text: `${successText(findings, stats)}${weak}`,
     }
   }
 }
@@ -483,17 +493,34 @@ async function track(state, exec, result, cfg) {
 
 function nudge(agent, state, cfg, logger) {
   if (state.edited.size === 0) return
-  if (state.nudges >= cfg.maxNudges) {
-    logger.warn(`本轮已催过 ${state.nudges} 次精简审查，放行收尾`)
+  if (state.gateReported) return
+  const files = [...state.edited.keys()]
+  const tracker = state.gateTracker ?? (state.gateTracker = new GateTracker({ maxSteers: Math.max(1, cfg.maxNudges) }))
+  const progress = state.lastPending != null && files.length < state.lastPending
+  state.lastPending = files.length
+  const step = tracker.next('精简审查', { pending: files, progress })
+  if (step.action === 'pass') return
+  if (step.action === 'report-unverified') {
+    state.gateReported = true
+    logger.warn(`本轮已提醒 ${cfg.maxNudges} 次，仍有 ${files.length} 个文件未审查；要求在回答末尾标注`)
+    const zh = cfg.language !== 'en'
+    agent.steer(createNotice({
+      kind: name,
+      summary: `${files.length} 个代码文件仍未审查`,
+      text: `${banner('精简审查', files)}\n\n${zh ? '这是最后一次提醒：把上面那行「⚠ 未验证」原样放在最终回答的最后一行，然后结束，不要继续循环。' : 'This is the last reminder: copy that line verbatim as the final line of your answer, then stop. Do not loop.'}\n\n${sourceNote(cfg.language)}`,
+    }))
     return
   }
   state.nudges += 1
-  const files = [...state.edited.keys()]
   logger.info(`收尾拦截：${files.length} 个代码文件未做精简审查`)
+  const strong = step.action === 'steer-strong'
+  const lead = strong
+    ? (cfg.language === 'en' ? 'No progress since the last reminder. You must call `code_shrink` with one finding per file; prose alone does not count.\n\n' : '上次提醒后仍无进展：必须调用 `code_shrink` 逐文件提交 finding，只用文字回答不算完成。\n\n')
+    : ''
   agent.steer(createNotice({
     kind: name,
     summary: `${files.length} 个代码文件待精简审查`,
-    text: nudgeText(files, cfg),
+    text: `${lead}${nudgeText(files, cfg)}`,
   }))
 }
 

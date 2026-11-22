@@ -90,7 +90,7 @@ test('模块导出契约并注册工具、命令、四个监听器', () => withT
   assert.deepEqual({ ...DEFAULTS }, {
     enabled: true,
     gate: true,
-    maxNudges: 1,
+    maxNudges: 2,
     language: 'zh',
     maxCriteria: 20,
     timeoutMs: 120_000,
@@ -333,7 +333,7 @@ test('complete 只接受全部 verified，否则返回未验证项；修复后�
 
 // ── 收尾门禁 ──────────────────────────────────────────────────────────────
 
-test('收尾门禁每回合只催一次，文案含未验证项、下一步与 sourceNote', () => withTempDir(async dir => {
+test('收尾门禁升级：提醒 → 强提醒 → 回答末尾标注未验证，不再循环', () => withTempDir(async dir => {
   const fake = setup(dir, { shell: createScriptedShell() })
   const agent = createFakeAgent('s-gate')
   await callTool(fake, agent, {
@@ -359,14 +359,24 @@ test('收尾门禁每回合只催一次，文案含未验证项、下一步与 s
   assert.match(text, /acceptance complete/)
   assert.match(text, /不是用户的新消息/)
 
-  // 同一回合再收尾：不再催
+  // 同一回合再次收尾：升级为强提醒
   fake.emit('agent/turn-stopping', { agent, turn: 1 })
-  assert.equal(agent.steered.length, 1)
+  assert.equal(agent.steered.length, 2)
+  assert.match(messageText(agent.steered[1]), /必须真的调用工具/)
 
-  // 新回合重置 nudges：可以再催一次
+  // 第三次：要求把横幅拼进最终回答，不再循环
+  fake.emit('agent/turn-stopping', { agent, turn: 1 })
+  assert.equal(agent.steered.length, 3)
+  assert.match(messageText(agent.steered[2]), /⚠ 未验证/)
+  assert.match(messageText(agent.steered[2]), /最后一次提醒/)
+
+  fake.emit('agent/turn-stopping', { agent, turn: 1 })
+  assert.equal(agent.steered.length, 3, '标注后不再循环')
+
+  // 新回合重置门控：可以重新开始升级
   await preStep(fake, agent, { turn: 2 })
   fake.emit('agent/turn-stopping', { agent, turn: 2 })
-  assert.equal(agent.steered.length, 2)
+  assert.equal(agent.steered.length, 4)
 }))
 
 test('gate=false 或没有标准时收尾不催；全部 verified 后也不再催', () => withTempDir(async dir => {

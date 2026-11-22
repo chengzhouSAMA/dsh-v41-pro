@@ -86,7 +86,7 @@ test('导出契约：name、inject、DEFAULTS 与纯函数', () => {
   assert.deepEqual(inject, ['tools', 'commands'])
   assert.equal(DEFAULTS.enabled, true)
   assert.equal(DEFAULTS.gate, true)
-  assert.equal(DEFAULTS.maxNudges, 1)
+  assert.equal(DEFAULTS.maxNudges, 2)
   assert.equal(DEFAULTS.language, 'zh')
   assert.equal(DEFAULTS.maxFiles, 20)
   assert.ok(DEFAULTS.codeExtensions.includes('.js'))
@@ -184,7 +184,7 @@ test('兼容宿主契约里的 exec.args 参数名', async () => {
 
 // ── 收尾门禁 ───────────────────────────────────────────────────────────────
 
-test('收尾门禁点名文件、要求删/并/保留理由，每回合只催一次', async () => {
+test('收尾门禁点名文件、要求删/并/保留理由，升级后标注未验证', async () => {
   const dir = tempDir()
   const a = path.join(dir, 'a.js')
   const b = path.join(dir, 'b.js')
@@ -212,7 +212,14 @@ test('收尾门禁点名文件、要求删/并/保留理由，每回合只催一
   assert.match(text, /不是用户的新消息/)
 
   stopTurn(emit, agent, 1)
-  assert.equal(agent.steered.length, 1, '同一回合只催一次，不能变成死循环')
+  assert.equal(agent.steered.length, 2, '第二次收尾应升级为强提醒')
+  assert.match(agent.steered[1].content[0].text, /必须调用 `code_shrink`/)
+
+  stopTurn(emit, agent, 1)
+  assert.equal(agent.steered.length, 3, '第三次收尾要求标注未验证')
+  assert.match(agent.steered[2].content[0].text, /⚠ 未验证/)
+  stopTurn(emit, agent, 1)
+  assert.equal(agent.steered.length, 3, '标注后不再循环')
 })
 
 test('每回合重置待审查集合与催促预算', async () => {

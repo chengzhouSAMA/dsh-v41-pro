@@ -24,6 +24,7 @@ import { createNotice } from './core/message.js'
 import { extractCommand, extractPath, truncate } from './core/util.js'
 import { verifyNudge } from './core/text.js'
 import { assessCommandResult, requiresTestEvidence } from './core/evidence.js'
+import { redact } from './core/safe-exec.js'
 
 export const name = 'v41pro-verifier'
 
@@ -220,8 +221,8 @@ export function apply(ctx, rawConfig = {}) {
           exitCode: typeof result.exitCode === 'number' ? result.exitCode : -1,
           timedOut: Boolean(result.timedOut),
           command,
-          stdout: truncate(result.stdout?.text ?? '', cfg.outputChars),
-          stderr: truncate(result.stderr?.text ?? '', cfg.outputChars),
+          stdout: redact(truncate(result.stdout?.text ?? '', cfg.outputChars)),
+          stderr: redact(truncate(result.stderr?.text ?? '', cfg.outputChars)),
         }
 
         // 记进状态：这一刻就是「最后一次验证」。
