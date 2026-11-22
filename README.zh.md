@@ -160,6 +160,19 @@ powershell -File scripts/loop-runtime.ps1   # Windows：真实 DSH agent loop + 
 
 这些检查证明的是插件机制，不是模型综合能力。`scripts/loop-runtime.ps1` 用真实 DSH 0.2.2-rc.5 agent loop，但模型是固定 fixture，不调用收费模型。若要比较两个模型或插件版本，必须固定任务集、provider、系统提示、工具权限、预算、重试与评审标准，分别报告自主成功、人工协助、失败、超时与无效运行。
 
+## 评测与对照
+
+仓库另存了两次工程评测的可复核汇总与评分图。各只有一道题、每个对象一份提交，不能当作模型或插件的排行榜；评分者、方法与边界写在每页顶部。
+
+| 评测 | 对象与结果 |
+|---|---|
+| [顶级难度 BUG 修复](evaluation/bugfix-2026-11-14.zh.md) · [EN](evaluation/bugfix-2026-11-14.en.md) | GPT-6 Astra 95.5 · Flash＋插件 92.5 · Flash 无插件 91.5（Claude Opus 5.5 / Kimi K3.1 Pro 评审） |
+| [AegisQueue](evaluation/aegisqueue-2026-11-22.zh.md) · [EN](evaluation/aegisqueue-2026-11-22.en.md) | 官方冻结分：dsv4.1、插件版、gpt6 Astra 均 100.000，glm5.3flash 96.952；另附事后严格复评 |
+
+- 索引与共同边界：[evaluation/README.md](evaluation/README.md)
+- 机器可读结果：[evaluation/data/results.json](evaluation/data/results.json)
+- 评审图：[顶级难度 BUG 修复 · 三 AI 多维评审](evaluation/assets/bugfix-review-2026-11-14.jpg)
+
 ## 工程结构
 
 ```text
@@ -175,7 +188,7 @@ omni/                 全模态媒体工具（源自 dsh-omni，MIT，含删减�
 test/                 21 个 node:test 文件
 scripts/              selfcheck、真实 loop、思考链、伦理准则与可靠性脚本
 docs/                 设计说明与团队契约
-eval/novel/           一次非盲、主观、单次运行的写作对照报告（不是模型基准）
+evaluation/           两次工程评测、写作对照、评分图与机器可读结果
 ```
 
 ## 设计边界

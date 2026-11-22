@@ -1,0 +1,65 @@
+{
+  "schema": "v41pro-evaluation-results-v1",
+  "generatedAt": "2026-11-22",
+  "note": "Numbers transcribed from the two local evaluation reports. Labels are submission directory names; model identity, effort and budgets were not independently verified.",
+  "bugfix2026_11_14": {
+    "task": "DurableKV bug fix: append log, atomic replace, version tombstone, crash recovery",
+    "judges": ["Claude Opus 5.5", "Kimi K3.1 Pro"],
+    "executable": { "public": "7/7", "hidden": "23/24", "failedGroups": ["G4"], "score": 57.5, "max": 60 },
+    "rubric": { "hidden": 60, "persistenceConcurrency": 15, "regression": 10, "rootCause": 10, "solution": 5 },
+    "submissions": [
+      { "label": "Flash 无插件", "codeLines": 591, "newRegressionTests": 19, "multiDim": 7.945, "manualScore": 34.0, "total": 91.5 },
+      { "label": "Flash + v41 Pro v1.2.0", "codeLines": 641, "newRegressionTests": 15, "multiDim": 8.210, "manualScore": 35.0, "total": 92.5 },
+      { "label": "GPT-6 Astra", "codeLines": 409, "newRegressionTests": 20, "multiDim": 8.970, "manualScore": 38.0, "total": 95.5 }
+    ],
+    "dimensions": [
+      { "name": "hidden coverage", "flash": 9.6, "plugin": 9.6, "gpt": 9.6 },
+      { "name": "durability/crash consistency", "flash": 8.5, "plugin": 9.0, "gpt": 9.0 },
+      { "name": "transaction correctness", "flash": 9.0, "plugin": 9.0, "gpt": 9.5 },
+      { "name": "index/query semantics", "flash": 6.5, "plugin": 7.0, "gpt": 9.0 },
+      { "name": "concurrency/lifecycle", "flash": 8.0, "plugin": 9.0, "gpt": 9.0 },
+      { "name": "code simplicity/structure", "flash": 5.0, "plugin": 4.5, "gpt": 8.5 },
+      { "name": "performance/scalability", "flash": 6.0, "plugin": 5.5, "gpt": 5.5 },
+      { "name": "regression effectiveness", "flash": 8.5, "plugin": 9.0, "gpt": 9.5 },
+      { "name": "robustness/error paths", "flash": 6.5, "plugin": 8.5, "gpt": 9.0 },
+      { "name": "security/resource bounds", "flash": 8.0, "plugin": 8.0, "gpt": 8.0 },
+      { "name": "docs/credibility", "flash": 7.0, "plugin": 7.5, "gpt": 9.0 },
+      { "name": "rules/auditability", "flash": 10.0, "plugin": 10.0, "gpt": 10.0 }
+    ]
+  },
+  "aegisqueue2026_11_22": {
+    "task": "AegisQueue durable queue: v1 core 120 hidden groups / 100; v2 = 120 core (40) + 60 extension (60)",
+    "official": [
+      { "label": "dsv4.1", "pack": "v1", "score": 100.0, "hidden": "120/120", "public": "10/10", "addedTests": "28/28" },
+      { "label": "dsv4.1 插件版", "pack": "v2", "score": 100.0, "hidden": "180/180", "public": "15/15", "addedTests": "41/41" },
+      { "label": "gpt6 Astra", "pack": "v1", "score": 100.0, "hidden": "120/120", "public": "10/10", "addedTests": "44/44" },
+      { "label": "glm5.3flash", "pack": "v2", "score": 96.952, "hidden": "177/180", "public": "15/15", "addedTests": "31/31" }
+    ],
+    "commonCore": { "dsv4.1": 100.0, "plugin": 100.0, "gpt": 100.0, "glm": 98.880 },
+    "glmDeductions": [
+      { "group": "K10", "points": 0.448, "reason": "a queued append still runs after the instance is poisoned" },
+      { "group": "P07", "points": 0.900, "reason": "second line in a block counts bytes of the completed first line" },
+      { "group": "P15", "points": 1.700, "reason": "same per-line budget bug under arbitrary chunking" }
+    ],
+    "strictS1": {
+      "status": "post-hoc strict engineering re-evaluation on frozen answer copies, commissioned by the user; not independent and not the official score",
+      "core": [
+        { "label": "gpt6 Astra", "base": 20.0, "newContract": 45.0, "selfTest": 25.0, "noEfficiency": 90.0, "efficiency": 7.745, "total": 97.745 },
+        { "label": "dsv4.1 插件版", "base": 20.0, "newContract": 45.0, "selfTest": 20.834, "noEfficiency": 85.834, "efficiency": 7.512, "total": 93.346 },
+        { "label": "dsv4.1", "base": 20.0, "newContract": 45.0, "selfTest": 14.584, "noEfficiency": 79.584, "efficiency": 10.0, "total": 89.584 },
+        { "label": "glm5.3flash", "base": 19.776, "newContract": 41.25, "selfTest": 12.5, "noEfficiency": 73.526, "efficiency": 8.081, "total": 81.607 }
+      ],
+      "fullV2": [
+        { "label": "dsv4.1 插件版", "extensionPass": "26/32", "extensionScore": 85.0, "full": 88.338 },
+        { "label": "glm5.3flash", "extensionPass": "22/32", "extensionScore": 74.133, "full": 77.123 }
+      ],
+      "mutationDetection": { "dsv4.1": "7/12", "plugin": "10/12", "gpt": "12/12", "glm": "6/12" },
+      "efficiency": {
+        "dsv4.1": { "cpuMedianMs": 172, "rssMedianKiB": 96448, "cpuScore": 5.0, "rssScore": 5.0 },
+        "plugin": { "cpuMedianMs": 437, "rssMedianKiB": 125436, "cpuScore": 3.137, "rssScore": 4.375 },
+        "gpt": { "cpuMedianMs": 374, "rssMedianKiB": 126616, "cpuScore": 3.391, "rssScore": 4.354 },
+        "glm": { "cpuMedianMs": 453, "rssMedianKiB": 96016, "cpuScore": 3.081, "rssScore": 5.0 }
+      }
+    }
+  }
+}
